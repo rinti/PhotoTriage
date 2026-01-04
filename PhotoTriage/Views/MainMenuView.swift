@@ -9,8 +9,24 @@ import Photos
 struct MainMenuView: View {
     @StateObject private var photoManager = PhotoLibraryManager()
     @State private var selectedSortOrder: SortOrder = .newestFirst
+    @State private var isShowingViewer = false
+    @State private var assets: PHFetchResult<PHAsset>?
 
     var body: some View {
+        ZStack {
+            if isShowingViewer, let assets = assets {
+                PhotoViewerView(assets: assets) {
+                    // On dismiss, return to main menu
+                    isShowingViewer = false
+                    self.assets = nil
+                }
+            } else {
+                mainMenuContent
+            }
+        }
+    }
+
+    private var mainMenuContent: some View {
         VStack(spacing: 24) {
             // App Title
             Text("PhotoTriage")
@@ -89,12 +105,20 @@ struct MainMenuView: View {
             .frame(maxWidth: 300)
 
             Button("Start Session") {
-                // Navigation will be implemented in Sprint 2
+                startSession()
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .disabled(photoManager.photoCount == 0)
         }
+    }
+
+    private func startSession() {
+        let fetchedAssets = photoManager.fetchAssets(sortOrder: selectedSortOrder)
+        guard fetchedAssets.count > 0 else { return }
+
+        assets = fetchedAssets
+        isShowingViewer = true
     }
 
     private var authorizationIcon: String {

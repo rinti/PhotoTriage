@@ -539,11 +539,37 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 2 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Created `ImageLoader.swift` with:
+  - PHImageManager-based image loading
+  - Medium resolution (1600x1600) for performance
+  - iCloud network access support
+  - Loading state and error handling
+  - Request cancellation support
+- Created `PhotoViewerView.swift` with:
+  - Full-window photo display on black background
+  - Progress counter overlay ("47/523")
+  - `s` key to advance to next photo
+  - `q` key to quit and return to menu
+  - Loading indicator and error states
+  - End of photos message
+- Updated `MainMenuView.swift`:
+  - Added navigation state management
+  - "Start Session" fetches assets and shows PhotoViewerView
+  - Dismiss callback returns to main menu
+
 **Deviations:**
+- None significant. Followed sprint plan as specified.
+
 **Issues:**
+- None encountered.
+
 **Context for Next Sprint:**
+- PhotoViewerView has `currentIndex` state ready for history tracking
+- Need to add `d` key for marking deletion and `z` key for going back
+- ImageLoader is ready to be extended for preloading
+- Sprint 3 will add DeleteBucket and s/d/z workflow
 
 ---
 
