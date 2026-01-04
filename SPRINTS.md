@@ -738,11 +738,44 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 7 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Updated `ImageLoader.swift` with video support:
+  - Added `mediaType: PHAssetMediaType?` published property
+  - Added `videoURL: URL?` published property for AVPlayer
+  - Detect asset type in `loadImage(from:)` and branch to video or photo loading
+  - Video loading uses `PHImageManager.requestAVAsset()` to get URL
+  - First frame extraction via `AVAssetImageGenerator`
+  - Added `VideoLoadError` enum for error handling
+- Created `VideoPlayerView.swift`:
+  - NSViewRepresentable wrapper for AVPlayerView
+  - Muted by default (`player.isMuted = true`)
+  - Loops continuously via `AVPlayerItemDidPlayToEndTime` notification
+  - Hidden controls (`controlsStyle = .none`)
+  - Play/pause controlled via `isPlaying` binding
+  - Proper cleanup in `dismantleNSView`
+- Updated `PhotoViewerView.swift`:
+  - Added `@State private var isVideoPlaying = false`
+  - Conditional rendering: VideoPlayerView for videos, Image for photos
+  - Space key handler toggles `isVideoPlaying` for videos
+  - `loadCurrentPhoto()` resets `isVideoPlaying = false` when navigating
+- Updated `BucketView.swift`:
+  - ThumbnailView now detects video assets via `asset.mediaType == .video`
+  - Video indicator overlay (top-right): play icon + formatted duration
+  - Duration formatted as "M:SS" from `asset.duration`
+
 **Deviations:**
+- Used `PHImageManager.requestAVAsset()` instead of `PHAssetResource` for video URL (simpler, returns AVURLAsset directly)
+- Videos muted by default (per user preference)
+- Videos loop continuously (per user preference)
+
 **Issues:**
+- None. Build succeeded on first attempt.
+
 **Context for Next Sprint:**
+- Video playback fully functional with Space to play/pause
+- Live Photos display as still images (no special handling needed - they're `.image` type)
+- Sprint 8 will add slide animations and preloading for smoother navigation
 
 ---
 

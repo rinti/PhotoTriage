@@ -56,6 +56,7 @@ struct PhotoViewerView: View {
     @State private var showBucketView = false
     @State private var showCommitConfirmation = false
     @State private var showQuitConfirmation = false
+    @State private var isVideoPlaying = false
     @FocusState private var isFocused: Bool
 
     /// Current asset being viewed (nil if at end or empty)
@@ -120,8 +121,42 @@ struct PhotoViewerView: View {
             Color.black
                 .ignoresSafeArea()
 
-            // Photo display
-            if let image = imageLoader.image {
+            // Photo/Video display
+            if imageLoader.mediaType == .video, let playerItem = imageLoader.playerItem {
+                // Video player
+                VideoPlayerView(playerItem: playerItem, isPlaying: $isVideoPlaying)
+                    .overlay {
+                        // Play/pause button - click to toggle
+                        ZStack {
+                            // Clickable area covers entire video
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    isVideoPlaying.toggle()
+                                }
+
+                            // Play button indicator when paused
+                            if !isVideoPlaying {
+                                ZStack {
+                                    Circle()
+                                        .fill(.black.opacity(0.5))
+                                        .frame(width: 80, height: 80)
+                                    Image(systemName: "play.fill")
+                                        .font(.system(size: 32))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                        }
+                    }
+                    .overlay {
+                        // Red border for marked videos
+                        if isCurrentMarked {
+                            RoundedRectangle(cornerRadius: 0)
+                                .stroke(.red, lineWidth: 8)
+                        }
+                    }
+            } else if let image = imageLoader.image {
+                // Image (photo or video first frame while loading)
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -274,6 +309,12 @@ struct PhotoViewerView: View {
                 }
             }
             return .handled
+        case " ":
+            // Space: Play/pause video
+            if imageLoader.mediaType == .video {
+                isVideoPlaying.toggle()
+            }
+            return .handled
         default:
             return .ignored
         }
@@ -313,6 +354,9 @@ struct PhotoViewerView: View {
     }
 
     private func loadCurrentPhoto() {
+        // Stop video playback when navigating
+        isVideoPlaying = false
+
         guard currentIndex < assets.count else { return }
         let asset = assets[currentIndex]
         imageLoader.loadImage(from: asset)

@@ -117,6 +117,18 @@ struct ThumbnailView: View {
 
     @State private var image: NSImage?
 
+    private var isVideo: Bool {
+        asset.mediaType == .video
+    }
+
+    private var durationFormatted: String? {
+        guard isVideo else { return nil }
+        let duration = Int(asset.duration)
+        let minutes = duration / 60
+        let seconds = duration % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+
     var body: some View {
         ZStack {
             if let image = image {
@@ -139,7 +151,32 @@ struct ThumbnailView: View {
             Rectangle()
                 .stroke(.red, lineWidth: 4)
 
-            // Trash icon overlay
+            // Video indicator (top-right)
+            if isVideo {
+                VStack {
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Image(systemName: "play.fill")
+                                .font(.caption2)
+                            if let duration = durationFormatted {
+                                Text(duration)
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(.black.opacity(0.7))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .foregroundStyle(.white)
+                        .padding(6)
+                    }
+                    Spacer()
+                }
+            }
+
+            // Trash icon overlay (bottom-left)
             VStack {
                 Spacer()
                 HStack {
