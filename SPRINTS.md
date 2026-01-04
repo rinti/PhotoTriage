@@ -574,11 +574,38 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 3 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Created `DeleteBucket.swift` with:
+  - In-memory storage using `Set<String>` of asset localIdentifiers
+  - O(1) lookup for checking if asset is marked
+  - `markForDeletion()`, `restore()`, `isMarked()`, `clear()` methods
+  - `calculateTotalSize()` method using PHAssetResource
+  - `@MainActor` + `@Published` for reactive UI updates
+- Updated `PhotoViewerView.swift` with:
+  - `@StateObject` for DeleteBucket
+  - `visitedIndices` array (stack) for unlimited back navigation history
+  - `currentAsset` computed property for cleaner code
+  - `isCurrentMarked` computed property for checking deletion status
+  - `d` key handler: marks current photo for deletion and advances
+  - `z` key handler: goes back to previous photo, auto-restores if marked
+  - Red border overlay (8px stroke) on marked photos
+  - "Marked for deletion" indicator badge in bottom-left corner
+  - Bucket counter with trash icon in top-right (only shows when not empty)
+  - Updated `advanceToNext()` to push to history before advancing
+
 **Deviations:**
+- Added `restoreByIdentifier()` and `isMarkedByIdentifier()` helper methods to DeleteBucket for flexibility
+- Added "Marked for deletion" text badge in addition to red border for clearer visual feedback
+
 **Issues:**
+- Initial build failed due to missing `import Combine` in DeleteBucket.swift - fixed by adding the import
+
 **Context for Next Sprint:**
+- DeleteBucket is in-memory only, does not persist across app restarts (expected)
+- Sprint 4 will add BucketView grid, commit functionality (`c` key), and quit workflow improvements (`q` key with prompt)
+- `deleteBucket.calculateTotalSize()` is ready for use in BucketView header
+- `deleteBucket.markedAssets` provides access to all marked identifiers for BucketView grid
 
 ---
 
