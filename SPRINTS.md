@@ -825,11 +825,41 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 9 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Created `SessionStats.swift` model with:
+  - `sessionStartTime`, `photosKept`, `photosDeleted`, `storageFreed`, `backNavigations` properties
+  - Computed `totalPhotosReviewed` (kept + deleted)
+  - Computed `duration` and `formattedDuration` (e.g., "12 min 34 sec")
+  - Computed `photosPerMinute` rate
+  - Computed `formattedStorageFreed` using ByteCountFormatter
+- Created `SummaryView.swift` with:
+  - Large "Session Complete" header with checkmark icon
+  - StatItem component for consistent stat display
+  - Stats shown: photos kept (green), photos deleted (red), total reviewed (blue)
+  - Additional stats: storage freed (purple), time spent (orange), photos/min rate (yellow)
+  - "Done" button with Return key shortcut to dismiss
+  - Follows system appearance (light/dark mode)
+- Updated `PhotoViewerView.swift`:
+  - Added `sessionStats`, `showSummary`, `summaryStorageFreed` state variables
+  - Added `finalStats` computed property combining stats with storage freed
+  - Track `photosKept` on 's' key press
+  - Track `photosDeleted` in `markForDeletionAndAdvance()`
+  - Track `backNavigations` in `goBack()` and adjust `photosDeleted` when auto-restoring
+  - Replaced end-of-photos message with SummaryView (triggered when `currentIndex >= assets.count`)
+  - `commitAndQuit()` now shows SummaryView after committing instead of immediately dismissing
+
 **Deviations:**
+- Added `backNavigations` tracking (not in original spec but useful metric)
+- Stats adjust when going back: `photosDeleted` decrements when auto-restoring a marked photo
+
 **Issues:**
+- None. Build succeeded on first attempt.
+
 **Context for Next Sprint:**
+- Sprint 10 will add Settings view (metadata toggle), MetadataOverlay, HelpOverlay, and window state persistence
+- SessionStats currently resets when session is saved/resumed (stats don't persist across sessions - could enhance in future)
+- SummaryView uses SF Symbols for icons which work well with system appearance
 
 ---
 

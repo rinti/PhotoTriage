@@ -59,6 +59,9 @@ struct PhotoViewerView: View {
     @State private var isVideoPlaying = false
     @State private var slideDirection: Edge = .trailing  // Animation direction
     @State private var showLoadingIndicator = false  // Delayed loading indicator
+    @State private var sessionStats = SessionStats()  // Session statistics tracking
+    @State private var showSummary = false  // Show end-of-session summary
+    @State private var summaryStorageFreed: Int64 = 0  // Storage freed (calculated before commit)
     @FocusState private var isFocused: Bool
 
     /// Current asset being viewed (nil if at end or empty)
@@ -73,9 +76,18 @@ struct PhotoViewerView: View {
         return deleteBucket.isMarked(asset)
     }
 
+    /// Final stats for summary view (includes storage freed)
+    private var finalStats: SessionStats {
+        var stats = sessionStats
+        stats.storageFreed = summaryStorageFreed
+        return stats
+    }
+
     var body: some View {
         Group {
-            if showBucketView {
+            if showSummary {
+                SummaryView(stats: finalStats, onDismiss: onDismiss)
+            } else if showBucketView {
                 BucketView(
                     deleteBucket: deleteBucket,
                     assets: assets,
@@ -242,18 +254,16 @@ struct PhotoViewerView: View {
                 }
             }
 
-            // End of photos message
+            // End of photos - show summary
             if currentIndex >= assets.count {
-                VStack(spacing: 16) {
-                    Image(systemName: "checkmark.circle")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.green)
-                    Text("You've reached the end!")
-                        .font(.title2)
-                        .foregroundStyle(.white)
-                    Text("Press Q to quit")
-                        .foregroundStyle(.secondary)
-                }
+                Color.clear
+                    .onAppear {
+                        // Calculate storage freed from bucket
+                        Task {
+                            summaryStorageFreed = await deleteBucket.calculateTotalSizeFromArray(assets)
+                            showSummary = true
+                        }
+                    }
             }
         }
         .frame(minWidth: 600, minHeight: 400)
@@ -305,6 +315,9 @@ struct PhotoViewerView: View {
         case "s":
             // Keep photo, advance to next
             Task { @MainActor in
+                if currentIndex < assets.count {
+                    sessionStats.photosKept += 1
+                }
                 advanceToNext()
             }
             return .handled
@@ -375,6 +388,7 @@ struct PhotoViewerView: View {
         guard currentIndex < assets.count else { return }
         let asset = assets[currentIndex]
         deleteBucket.markForDeletion(asset)
+        sessionStats.photosDeleted += 1
         advanceToNext()
     }
 
@@ -389,10 +403,13 @@ struct PhotoViewerView: View {
             currentIndex = previousIndex
         }
         loadCurrentPhoto()
+        sessionStats.backNavigations += 1
 
         // Auto-restore if the photo was marked for deletion
         if let asset = currentAsset, deleteBucket.isMarked(asset) {
             deleteBucket.restore(asset)
+            // Adjust stats: no longer deleting this photo
+            sessionStats.photosDeleted -= 1
         }
     }
 
@@ -430,12 +447,17 @@ struct PhotoViewerView: View {
 
     private func commitAndQuit() {
         Task {
+            // Calculate storage before committing (bucket will be cleared after)
+            let storageFreed = await deleteBucket.calculateTotalSizeFromArray(assets)
+
             do {
                 _ = try await deleteBucket.commitDeletions()
                 await MainActor.run {
                     // Clear session - photos deleted, position unreliable
                     sessionManager.clearSession()
-                    onDismiss()
+                    // Show summary instead of immediately dismissing
+                    summaryStorageFreed = storageFreed
+                    showSummary = true
                 }
             } catch {
                 print("Failed to delete photos: \(error)")
