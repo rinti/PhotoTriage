@@ -56,4 +56,32 @@ class DeleteBucket: ObservableObject {
 
         return totalSize
     }
+
+    /// Get all marked assets from a fetch result
+    func getMarkedAssets(from assets: PHFetchResult<PHAsset>) -> [PHAsset] {
+        var result: [PHAsset] = []
+        assets.enumerateObjects { asset, _, _ in
+            if self.isMarked(asset) {
+                result.append(asset)
+            }
+        }
+        return result
+    }
+
+    /// Commit deletions via PhotoKit - moves photos to Recently Deleted
+    /// Returns the number of assets deleted
+    func commitDeletions() async throws -> Int {
+        let identifiers = Array(markedAssets)
+        guard !identifiers.isEmpty else { return 0 }
+
+        let assetsToDelete = PHAsset.fetchAssets(withLocalIdentifiers: identifiers, options: nil)
+
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.deleteAssets(assetsToDelete)
+        }
+
+        let deletedCount = markedAssets.count
+        clear()
+        return deletedCount
+    }
 }

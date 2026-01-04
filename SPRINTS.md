@@ -610,11 +610,40 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 4 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Updated `DeleteBucket.swift` with:
+  - `getMarkedAssets(from:)` method to retrieve marked assets as array
+  - `commitDeletions()` async method using `PHAssetChangeRequest.deleteAssets()`
+- Created `BucketView.swift` with:
+  - LazyVGrid with adaptive columns (150-200px thumbnails)
+  - Header showing count and storage size (ByteCountFormatter)
+  - Red overlay and trash icon on each thumbnail
+  - Click to remove from bucket (restore)
+  - `b` and Escape keys to return to photo viewer
+  - Empty state with "Bucket is empty" message
+  - ThumbnailView subview with async thumbnail loading (300x300)
+- Updated `PhotoViewerView.swift` with:
+  - `showBucketView`, `showCommitConfirmation`, `showQuitConfirmation` state
+  - `b` key handler to show bucket view
+  - `c` key handler to show commit confirmation (only when bucket not empty)
+  - Updated `q` key handler with conditional quit confirmation
+  - Two confirmation dialogs (commit and quit)
+  - `commitDeletions()`, `commitAndQuit()`, `discardAndQuit()` helper functions
+  - Extracted photo viewer content to `photoViewerContent` computed property
+
 **Deviations:**
+- ThumbnailView uses 300x300 size instead of 200x200 for better quality on Retina displays
+- Added empty state UI for bucket view when no items marked
+
 **Issues:**
+- None encountered. Build succeeded on first attempt.
+
 **Context for Next Sprint:**
+- Bucket view and commit functionality fully working
+- Sprint 5 will add session persistence (SessionData, SessionManager)
+- `deleteBucket` is still in-memory only, clears on app restart
+- MainMenuView will need "Continue" button for saved sessions
 
 ---
 

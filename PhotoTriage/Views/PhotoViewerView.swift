@@ -14,6 +14,9 @@ struct PhotoViewerView: View {
     @StateObject private var deleteBucket = DeleteBucket()
     @State private var currentIndex: Int = 0
     @State private var visitedIndices: [Int] = []  // Stack for back navigation history
+    @State private var showBucketView = false
+    @State private var showCommitConfirmation = false
+    @State private var showQuitConfirmation = false
     @FocusState private var isFocused: Bool
 
     /// Current asset being viewed (nil if at end or empty)
@@ -29,6 +32,47 @@ struct PhotoViewerView: View {
     }
 
     var body: some View {
+        Group {
+            if showBucketView {
+                BucketView(
+                    deleteBucket: deleteBucket,
+                    assets: assets,
+                    onDismiss: { showBucketView = false }
+                )
+            } else {
+                photoViewerContent
+            }
+        }
+        .confirmationDialog(
+            "Delete \(deleteBucket.count) photos permanently?",
+            isPresented: $showCommitConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                commitDeletions()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Photos will be moved to Recently Deleted and removed from all your devices.")
+        }
+        .confirmationDialog(
+            "You have \(deleteBucket.count) items marked for deletion",
+            isPresented: $showQuitConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Commit & Quit", role: .destructive) {
+                commitAndQuit()
+            }
+            Button("Discard & Quit") {
+                discardAndQuit()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("What would you like to do with the marked items?")
+        }
+    }
+
+    private var photoViewerContent: some View {
         ZStack {
             // Background
             Color.black
@@ -160,10 +204,28 @@ struct PhotoViewerView: View {
                 goBack()
             }
             return .handled
-        case "q":
-            // Quit session
+        case "b":
+            // Toggle bucket view
             Task { @MainActor in
-                onDismiss()
+                showBucketView = true
+            }
+            return .handled
+        case "c":
+            // Commit deletions (if bucket not empty)
+            Task { @MainActor in
+                if !deleteBucket.isEmpty {
+                    showCommitConfirmation = true
+                }
+            }
+            return .handled
+        case "q":
+            // Quit session (prompt if bucket has items)
+            Task { @MainActor in
+                if deleteBucket.isEmpty {
+                    onDismiss()
+                } else {
+                    showQuitConfirmation = true
+                }
             }
             return .handled
         default:
@@ -208,5 +270,33 @@ struct PhotoViewerView: View {
         guard currentIndex < assets.count else { return }
         let asset = assets.object(at: currentIndex)
         imageLoader.loadImage(from: asset)
+    }
+
+    private func commitDeletions() {
+        Task {
+            do {
+                _ = try await deleteBucket.commitDeletions()
+            } catch {
+                print("Failed to delete photos: \(error)")
+            }
+        }
+    }
+
+    private func commitAndQuit() {
+        Task {
+            do {
+                _ = try await deleteBucket.commitDeletions()
+                await MainActor.run {
+                    onDismiss()
+                }
+            } catch {
+                print("Failed to delete photos: \(error)")
+            }
+        }
+    }
+
+    private func discardAndQuit() {
+        deleteBucket.clear()
+        onDismiss()
     }
 }
