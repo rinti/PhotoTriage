@@ -1,0 +1,618 @@
+# PhotoTriage - macOS Photo Cleanup App
+
+## Overview
+A native macOS SwiftUI app to quickly cycle through your iCloud Photos library, marking photos to keep or delete. Deletions sync across all Apple devices via iCloud.
+
+## Technical Requirements
+- **Language**: Swift
+- **UI Framework**: SwiftUI
+- **Photos Access**: PhotoKit (Photos.framework)
+- **Minimum macOS**: 26.0 (Tahoe)
+- **Appearance**: Follow system (light/dark mode)
+
+---
+
+## Core Workflow
+
+### Main Menu
+- **Continue** button (only visible if a saved session exists)
+- **Start New Session** with filter options:
+  - Sort order: Newest first / Oldest first
+  - Album: Dropdown of user's albums (or "All Photos")
+  - Date range: From/To date pickers
+  - Location: Text field with fuzzy search (matches city, region, or country)
+- Filter settings persist through the "Continue" button (saved with session)
+- If filters return 0 photos: Show error "No photos match your filters", stay on menu
+
+### Photo Viewer (Session)
+**Keyboard Controls:**
+| Key | Action |
+|-----|--------|
+| `s` | Keep photo, advance to next |
+| `d` | Mark photo for deletion (add to bucket), advance to next |
+| `z` | Go back to previous photo (unlimited history), auto-restore if it was marked for delete |
+| `b` | Open delete bucket view |
+| `c` | Commit all deletions (if bucket not empty; silent if empty) |
+| `q` | Quit session (prompts if bucket has items) |
+| `?` | Show keyboard shortcuts help overlay |
+| `Space` | Play/pause video |
+
+**Display:**
+- Photos/videos display full-screen in resizable window
+- Window size and position remembered between launches
+- Progress counter always visible (e.g., "47/523")
+- Bucket counter visible when not empty (e.g., "Bucket: 12")
+- Red border/overlay on photos marked for deletion
+- Metadata overlay (optional, toggle in Settings):
+  - Position: Bottom-left corner
+  - Shows: Date, location, dimensions, file size
+- Slide animation: Forward slides left, backward (z) slides right
+
+**Media Handling:**
+- Photos: Load low-to-medium resolution (no need for full quality)
+- Videos: Show first frame, press Space to play/pause, can delete while playing
+- Live Photos: Display as still images only
+- Screenshots/screen recordings: Included like any other media
+- Failed loads: Auto-skip, log error
+- Preloading: Preload next 3 photos/videos for smooth experience
+
+**Duplicates:**
+- Same photo in multiple albums: Show each instance (not deduplicated)
+
+**Session State:**
+- Session uses snapshot from when started (ignores library changes during session)
+- Audio: No sounds
+
+### Delete Bucket View
+- Accessed by pressing `b`
+- Grid of thumbnails (responsive columns based on window width)
+- Red overlay on all thumbnails (since all are marked for delete)
+- Shows total at top: "X photos/videos, Y.Z GB will be freed"
+- Click thumbnail to remove from bucket (restore photo)
+- Press `b` again or Escape to return to photo viewer
+
+### Quit Session (Q)
+- If bucket is empty: Save session position, return to main menu
+- If bucket has items: Prompt "You have X items marked for deletion. Commit, Discard, or Cancel?"
+  - Commit: Execute deletions, show summary, return to menu
+  - Discard: Clear bucket, save position, return to menu
+  - Cancel: Stay in session
+
+### Commit Deletions (C)
+- Always shows confirmation: "Delete X photos/videos permanently?"
+- On confirm: Execute via `PHAssetChangeRequest.deleteAssets()`
+- Photos move to "Recently Deleted" (recoverable for 30 days, syncs via iCloud)
+- Confirmation cannot be disabled in settings
+
+### End of Session
+- When reaching last photo: Show detailed summary
+- Summary includes:
+  - Photos kept
+  - Photos deleted
+  - Total photos reviewed
+  - Storage space freed
+  - Time spent
+  - Photos per minute
+- "Done" button returns to main menu
+
+### Settings (Cmd+,)
+- Toggle: Show photo metadata
+- (Appearance follows system automatically)
+
+---
+
+## File Structure
+```
+PhotoTriage/
+├── PhotoTriageApp.swift           # App entry point, window management
+├── Views/
+│   ├── MainMenuView.swift       # Main menu with filters
+│   ├── PhotoViewerView.swift    # Photo display with keyboard handling
+│   ├── BucketView.swift         # Delete bucket grid view
+│   ├── SummaryView.swift        # End-of-session summary
+│   ├── SettingsView.swift       # Settings panel
+│   ├── MetadataOverlay.swift    # Photo info overlay
+│   └── HelpOverlay.swift        # Keyboard shortcuts help (?)
+├── Managers/
+│   ├── PhotoLibraryManager.swift    # PhotoKit integration
+│   ├── SessionManager.swift         # Session state persistence
+│   ├── ImageLoader.swift            # Async image/video loading with preload
+│   └── DeleteBucket.swift           # In-memory bucket management
+├── Models/
+│   ├── SortOrder.swift              # Sort order enum
+│   ├── SessionData.swift            # Session state model
+│   └── SessionStats.swift           # Statistics tracking
+├── Info.plist                   # Permissions
+└── PhotoTriage.entitlements       # Sandbox config
+```
+
+---
+
+## Implementation Notes
+
+### PhotoKit Integration
+```swift
+// Fetch photos with filters
+let options = PHFetchOptions()
+options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: sortOrder == .oldestFirst)]
+
+// Date range predicate
+if let from = dateFrom, let to = dateTo {
+    options.predicate = NSPredicate(format: "creationDate >= %@ AND creationDate <= %@", from as NSDate, to as NSDate)
+}
+
+// Fetch from album or all photos
+let assets: PHFetchResult<PHAsset>
+if let album = selectedAlbum {
+    assets = PHAsset.fetchAssets(in: album, options: options)
+} else {
+    assets = PHAsset.fetchAssets(with: options)  // .image and .video
+}
+```
+
+### Location Filtering
+- Fetch all matching assets first
+- For each asset with `location` property, reverse geocode to get place name
+- Filter by fuzzy string match on city/region/country
+- Use `CLGeocoder` for reverse geocoding (may need caching for performance)
+
+### Session Persistence
+```swift
+// Save via @AppStorage (UserDefaults)
+- currentAssetIdentifier: String
+- currentIndex: Int
+- sortOrder: SortOrder
+- albumIdentifier: String?
+- dateFrom: Date?
+- dateTo: Date?
+- locationFilter: String?
+- hasActiveSession: Bool
+```
+
+### Delete Bucket
+- In-memory array of `PHAsset.localIdentifier` strings
+- Calculate storage: Sum of `PHAsset` estimated file sizes
+- Batch deletion: `PHAssetChangeRequest.deleteAssets()` with all bucket items
+
+### Preloading Strategy
+- Keep next 3 images in memory
+- When advancing, drop oldest preloaded, add new one
+- Cancel any pending loads for images no longer in preload window
+
+### Window State
+- Use SwiftUI's `WindowGroup` with `defaultSize` and state restoration
+- Store frame in UserDefaults via `@SceneStorage` or manual `NSWindow` frame saving
+
+---
+
+## Permissions Required
+
+**Info.plist:**
+```xml
+<key>NSPhotoLibraryUsageDescription</key>
+<string>PhotoTriage needs access to display and manage your photos</string>
+```
+
+**Entitlements:**
+- `com.apple.security.app-sandbox` = YES
+- `com.apple.security.personal-information.photos-library` = read-write
+
+---
+
+## Important Behaviors
+
+1. **Deletion is soft**: Photos move to "Recently Deleted", recoverable for 30 days
+2. **iCloud sync**: Deletions sync to all devices automatically
+3. **System confirmation**: macOS shows one confirmation dialog when committing (via PhotoKit)
+4. **No permanent delete API**: Cannot bypass "Recently Deleted" programmatically
+5. **Session snapshot**: Library changes during session are ignored until restart
+
+---
+
+# Sprint Plan
+
+This project is divided into sprints that can each be completed within a single Claude Code context window. After each sprint, update the "Sprint Log" section with what was completed, any deviations from plan, and context needed for the next sprint.
+
+---
+
+## Sprint 1: Project Setup & Core Infrastructure
+**Goal:** Create Xcode project, set up permissions, and build basic PhotoKit integration.
+
+**Tasks:**
+1. Create new macOS SwiftUI project "PhotoTriage" in Xcode
+2. Configure Info.plist with `NSPhotoLibraryUsageDescription`
+3. Configure entitlements for Photos library access (read-write)
+4. Create `SortOrder.swift` enum
+5. Create `PhotoLibraryManager.swift`:
+   - Authorization request and status handling
+   - Fetch all albums method
+   - Fetch photos method with sort order parameter (no filters yet)
+6. Create basic `MainMenuView.swift`:
+   - Request authorization on appear
+   - Show authorization status
+   - Simple "Start Session" button (no filters yet)
+7. Create `PhotoTriageApp.swift` with basic window setup
+
+**Deliverables:**
+- App compiles and runs
+- Requests Photos permission
+- Can fetch and count photos from library
+
+**Files to create:**
+- `PhotoTriage/PhotoTriageApp.swift`
+- `PhotoTriage/Views/MainMenuView.swift`
+- `PhotoTriage/Managers/PhotoLibraryManager.swift`
+- `PhotoTriage/Models/SortOrder.swift`
+
+---
+
+## Sprint 2: Basic Photo Viewer
+**Goal:** Display photos one at a time with basic navigation.
+
+**Tasks:**
+1. Create `ImageLoader.swift`:
+   - Load single image from PHAsset
+   - Low-to-medium resolution (not full quality)
+   - Handle loading states
+2. Create basic `PhotoViewerView.swift`:
+   - Display current photo full-screen
+   - Show progress counter ("1/523")
+   - Basic `s` key to advance (no delete yet)
+3. Wire up navigation from MainMenuView to PhotoViewerView
+4. Handle empty photo library case
+
+**Deliverables:**
+- Can start a session and see photos
+- Press `s` to advance through photos
+- Progress counter works
+
+**Files to create/modify:**
+- `PhotoTriage/Managers/ImageLoader.swift`
+- `PhotoTriage/Views/PhotoViewerView.swift`
+- Modify `MainMenuView.swift` for navigation
+
+---
+
+## Sprint 3: Delete Bucket & Basic Workflow
+**Goal:** Implement soft-delete bucket and core s/d/z workflow.
+
+**Tasks:**
+1. Create `DeleteBucket.swift`:
+   - In-memory storage of marked assets
+   - Add/remove methods
+   - Calculate total storage size
+2. Implement `d` key to mark for deletion + advance
+3. Implement `z` key to go back:
+   - Unlimited history
+   - Auto-restore if going back to deleted item
+4. Add red border/overlay for marked photos
+5. Add bucket counter display (when not empty)
+
+**Deliverables:**
+- Full s/d/z workflow working
+- Visual feedback for marked photos
+- Bucket counter visible
+
+**Files to create/modify:**
+- `PhotoTriage/Managers/DeleteBucket.swift`
+- Modify `PhotoViewerView.swift`
+
+---
+
+## Sprint 4: Bucket View & Commit
+**Goal:** Implement bucket view and commit functionality.
+
+**Tasks:**
+1. Create `BucketView.swift`:
+   - Grid of thumbnails (responsive columns)
+   - Red overlay on all thumbnails
+   - Storage total at top
+   - Click to remove from bucket
+2. Implement `b` key to toggle bucket view
+3. Implement `c` key to commit:
+   - Confirmation dialog
+   - Execute `PHAssetChangeRequest.deleteAssets()`
+   - Handle errors
+4. Implement `q` key to quit:
+   - Prompt if bucket has items
+   - Commit/Discard/Cancel options
+
+**Deliverables:**
+- Bucket view fully functional
+- Can commit deletions
+- Quit workflow complete
+
+**Files to create/modify:**
+- `PhotoTriage/Views/BucketView.swift`
+- Modify `PhotoViewerView.swift`
+- Modify `DeleteBucket.swift`
+
+---
+
+## Sprint 5: Session Persistence & Continue
+**Goal:** Save and restore session state.
+
+**Tasks:**
+1. Create `SessionData.swift` model
+2. Create `SessionManager.swift`:
+   - Save current position and filters
+   - Load saved session
+   - Clear session
+3. Update `MainMenuView.swift`:
+   - Show "Continue" button when session exists
+   - Load session on continue
+4. Update `PhotoViewerView.swift`:
+   - Save position on quit
+   - Resume from saved position
+
+**Deliverables:**
+- Can quit and continue session
+- Session state persists across app launches
+
+**Files to create/modify:**
+- `PhotoTriage/Models/SessionData.swift`
+- `PhotoTriage/Managers/SessionManager.swift`
+- Modify `MainMenuView.swift`
+- Modify `PhotoViewerView.swift`
+
+---
+
+## Sprint 6: Filters (Album, Date, Location)
+**Goal:** Implement all filter options on main menu.
+
+**Tasks:**
+1. Update `MainMenuView.swift` with filter UI:
+   - Album picker dropdown
+   - Date range pickers
+   - Location text field
+2. Update `PhotoLibraryManager.swift`:
+   - Fetch albums for picker
+   - Apply album filter
+   - Apply date range predicate
+   - Location filtering with reverse geocoding
+3. Handle "No photos match" error
+4. Save filters with session
+
+**Deliverables:**
+- All filters working
+- Filters saved with session for Continue
+
+**Files to modify:**
+- `PhotoTriage/Views/MainMenuView.swift`
+- `PhotoTriage/Managers/PhotoLibraryManager.swift`
+- `PhotoTriage/Managers/SessionManager.swift`
+
+---
+
+## Sprint 7: Video Support
+**Goal:** Add video playback support.
+
+**Tasks:**
+1. Update `ImageLoader.swift` to detect video assets
+2. Create video player component in `PhotoViewerView.swift`:
+   - Show first frame initially
+   - Space to play/pause
+   - Can delete while playing
+3. Handle Live Photos as still images
+4. Update bucket to show video thumbnails
+
+**Deliverables:**
+- Videos display and play correctly
+- Space to play/pause works
+- Can delete videos
+
+**Files to modify:**
+- `PhotoTriage/Managers/ImageLoader.swift`
+- `PhotoTriage/Views/PhotoViewerView.swift`
+- `PhotoTriage/Views/BucketView.swift`
+
+---
+
+## Sprint 8: Animations & Preloading
+**Goal:** Add slide animations and preloading for smooth UX.
+
+**Tasks:**
+1. Implement slide animation:
+   - Forward (s/d) slides left
+   - Backward (z) slides right
+2. Update `ImageLoader.swift` for preloading:
+   - Preload next 3 images
+   - Cancel loads for images no longer needed
+   - Memory management
+3. Add loading indicator for slow loads
+4. Auto-skip failed loads
+
+**Deliverables:**
+- Smooth slide animations
+- Fast navigation with preloading
+- Graceful error handling
+
+**Files to modify:**
+- `PhotoTriage/Views/PhotoViewerView.swift`
+- `PhotoTriage/Managers/ImageLoader.swift`
+
+---
+
+## Sprint 9: Summary & Stats
+**Goal:** End-of-session summary with detailed statistics.
+
+**Tasks:**
+1. Create `SessionStats.swift` model:
+   - Track kept, deleted, total
+   - Track storage freed
+   - Track time spent
+   - Calculate photos per minute
+2. Create `SummaryView.swift`:
+   - Display all stats
+   - "Done" button to return to menu
+3. Show summary at end of session
+4. Show summary after commit from quit dialog
+
+**Deliverables:**
+- Detailed end-of-session summary
+- All stats tracked correctly
+
+**Files to create/modify:**
+- `PhotoTriage/Models/SessionStats.swift`
+- `PhotoTriage/Views/SummaryView.swift`
+- Modify `PhotoViewerView.swift`
+
+---
+
+## Sprint 10: Settings, Help & Polish
+**Goal:** Settings view, help overlay, and final polish.
+
+**Tasks:**
+1. Create `SettingsView.swift`:
+   - Toggle for metadata overlay
+   - Wire up to Cmd+,
+2. Create `MetadataOverlay.swift`:
+   - Bottom-left corner position
+   - Date, location, dimensions, file size
+3. Create `HelpOverlay.swift`:
+   - Show on `?` key
+   - List all keyboard shortcuts
+4. Window state persistence:
+   - Remember size and position
+5. Follow system appearance (light/dark)
+6. Final testing and bug fixes
+
+**Deliverables:**
+- Complete, polished app
+- All features working
+- Ready for use
+
+**Files to create/modify:**
+- `PhotoTriage/Views/SettingsView.swift`
+- `PhotoTriage/Views/MetadataOverlay.swift`
+- `PhotoTriage/Views/HelpOverlay.swift`
+- `PhotoTriage/PhotoTriageApp.swift`
+
+---
+
+# Sprint Log
+
+## Instructions for Sprint Execution
+After completing each sprint, update this section with:
+1. **Completed:** What was actually built
+2. **Deviations:** Any changes from the plan
+3. **Issues:** Problems encountered and how they were resolved
+4. **Context for Next Sprint:** Important details the next session needs to know
+
+---
+
+### Sprint 1 Log
+**Status:** Complete
+**Completed:**
+- Created directory structure (Views/, Managers/, Models/)
+- Created `SortOrder.swift` enum with newestFirst/oldestFirst cases
+- Created `PhotoLibraryManager.swift` with:
+  - Authorization status tracking and request
+  - Album fetching (user albums + smart albums)
+  - Photo/video count fetching with sort order
+  - Asset fetching method for sessions
+- Created `MainMenuView.swift` with:
+  - Authorization status display with icon/color indicators
+  - Request authorization button (when not determined)
+  - Open System Settings button (when denied)
+  - Photo count display
+  - Sort order picker (segmented control)
+  - Start Session button (placeholder for Sprint 2)
+- Updated `PhotoTriageApp.swift` - removed SwiftData, uses MainMenuView with default window size
+- Created `PhotoTriage.entitlements` with sandbox and photos-library access
+- Deleted unused template files (ContentView.swift, Item.swift)
+
+**Deviations:**
+- None significant. Followed sprint plan as specified.
+
+**Issues:**
+- New files need to be manually added to Xcode project
+- Entitlements file needs to be linked in build settings
+- Info.plist key needs to be added via Xcode UI
+
+**Context for Next Sprint:**
+- `PhotoLibraryManager.fetchAssets(sortOrder:album:)` returns `PHFetchResult<PHAsset>` ready for use
+- `MainMenuView` has `selectedSortOrder` state ready to pass to PhotoViewerView
+- Navigation to PhotoViewerView needs to be wired up
+- Sprint 2 will create ImageLoader and PhotoViewerView for displaying photos
+
+---
+
+### Sprint 2 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 3 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 4 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 5 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 6 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 7 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 8 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 9 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
+
+---
+
+### Sprint 10 Log
+**Status:** Not started
+**Completed:**
+**Deviations:**
+**Issues:**
+**Context for Next Sprint:**
