@@ -10,6 +10,7 @@ struct MainMenuView: View {
     @StateObject private var photoManager = PhotoLibraryManager()
     @StateObject private var sessionManager = SessionManager()
     @StateObject private var locationCache = LocationCache()
+    private let skippedPhotosManager = SkippedPhotosManager.shared
 
     // Filter state
     @State private var selectedSortOrder: SortOrder = .newestFirst
@@ -43,6 +44,7 @@ struct MainMenuView: View {
                     sortOrder: resumeSortOrder,
                     sessionManager: sessionManager,
                     locationCache: locationCache,
+                    skippedPhotosManager: skippedPhotosManager,
                     initialIndex: resumeIndex,
                     initialVisitedIndices: resumeVisitedIndices,
                     initialMarkedAssets: resumeMarkedAssets,
@@ -300,6 +302,9 @@ struct MainMenuView: View {
             filterProgress = nil
         }
 
+        // Filter out permanently skipped photos
+        assetsArray = assetsArray.filter { !skippedPhotosManager.isSkipped($0) }
+
         // Check if any photos match
         guard !assetsArray.isEmpty else {
             showNoPhotosAlert = true
@@ -355,6 +360,9 @@ struct MainMenuView: View {
             isFiltering = false
             filterProgress = nil
         }
+
+        // Filter out permanently skipped photos
+        assetsArray = assetsArray.filter { !skippedPhotosManager.isSkipped($0) }
 
         guard !assetsArray.isEmpty else {
             showNoPhotosAlert = true

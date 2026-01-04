@@ -11,6 +11,7 @@ struct PhotoViewerView: View {
     let sortOrder: SortOrder
     let sessionManager: SessionManager
     let locationCache: LocationCache
+    let skippedPhotosManager: SkippedPhotosManager
     let onDismiss: () -> Void
 
     // Initial state for session restoration
@@ -36,6 +37,7 @@ struct PhotoViewerView: View {
         sortOrder: SortOrder,
         sessionManager: SessionManager,
         locationCache: LocationCache,
+        skippedPhotosManager: SkippedPhotosManager,
         initialIndex: Int = 0,
         initialVisitedIndices: [Int] = [],
         initialMarkedAssets: [String] = [],
@@ -49,6 +51,7 @@ struct PhotoViewerView: View {
         self.sortOrder = sortOrder
         self.sessionManager = sessionManager
         self.locationCache = locationCache
+        self.skippedPhotosManager = skippedPhotosManager
         self.initialIndex = initialIndex
         self.initialVisitedIndices = initialVisitedIndices
         self.initialMarkedAssets = initialMarkedAssets
@@ -337,9 +340,10 @@ struct PhotoViewerView: View {
     private func handleKeyPress(_ keyPress: KeyPress) -> KeyPress.Result {
         switch keyPress.characters.lowercased() {
         case "s":
-            // Keep photo, advance to next
+            // Keep photo, permanently skip, advance to next
             Task { @MainActor in
-                if currentIndex < assets.count {
+                if let asset = currentAsset {
+                    skippedPhotosManager.skip(asset)
                     sessionStats.photosKept += 1
                 }
                 advanceToNext()
