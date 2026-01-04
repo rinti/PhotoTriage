@@ -62,6 +62,7 @@ struct PhotoViewerView: View {
     @State private var sessionStats = SessionStats()  // Session statistics tracking
     @State private var showSummary = false  // Show end-of-session summary
     @State private var summaryStorageFreed: Int64 = 0  // Storage freed (calculated before commit)
+    @State private var hasInitialized = false  // Track if session state has been restored
     @FocusState private var isFocused: Bool
 
     /// Current asset being viewed (nil if at end or empty)
@@ -273,7 +274,12 @@ struct PhotoViewerView: View {
             handleKeyPress(keyPress)
         }
         .task {
-            // Restore session state if resuming
+            // Only restore session state once (not when returning from bucket view)
+            guard !hasInitialized else {
+                isFocused = true
+                return
+            }
+            hasInitialized = true
             currentIndex = initialIndex
             visitedIndices = initialVisitedIndices
             deleteBucket.restoreFromSession(initialMarkedAssets)
