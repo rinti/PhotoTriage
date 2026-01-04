@@ -690,11 +690,50 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 6 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Updated `SessionData.swift` with filter fields:
+  - `albumIdentifier: String?` for album filter
+  - `dateFrom: Date?` and `dateTo: Date?` for date range
+  - `location: String?` for location filter
+- Created `LocationCache.swift` with:
+  - Geocoding cache persisted to UserDefaults
+  - Uses `MKReverseGeocodingRequest` (macOS 26+ API)
+  - `filterAssetsByLocation()` async method with progress callback
+  - Rate limiting (0.1s delay every 10 assets) to avoid API limits
+- Updated `PhotoLibraryManager.swift`:
+  - Extended `fetchAssets()` with `dateFrom` and `dateTo` parameters
+  - Added date predicate building with NSCompoundPredicate
+  - Added `getAlbum(byIdentifier:)` helper method
+  - Added `assetsToArray()` and `filterAssetsByLocation()` helpers
+- Updated `MainMenuView.swift` with filter UI:
+  - Album picker dropdown using existing `photoManager.albums`
+  - Date range pickers with `OptionalDatePicker` helper view
+  - Location text field for fuzzy search
+  - "Clear Filters" button when filters active
+  - Progress indicator during location geocoding
+  - "No Photos Match" alert when filters return 0 results
+  - Filters persist when continuing session
+- Updated `PhotoViewerView.swift`:
+  - Changed from `PHFetchResult<PHAsset>` to `[PHAsset]` array
+  - Added filter parameters for session persistence
+  - Session save includes all filter fields
+- Updated `BucketView.swift` and `DeleteBucket.swift`:
+  - Added array-based methods (`getMarkedAssetsFromArray`, `calculateTotalSizeFromArray`)
+
 **Deviations:**
+- Used `MKReverseGeocodingRequest` instead of deprecated `CLGeocoder` (macOS 26+)
+- Used `MKAddress.fullAddress` for location string (simpler than individual components)
+- Location filter uses full geocoded address for fuzzy matching
+
 **Issues:**
+- `CLGeocoder` is deprecated in macOS 26.0 - migrated to `MKReverseGeocodingRequest`
+- `MKMapItem.placemark` is deprecated - using `MKMapItem.address.fullAddress` instead
+
 **Context for Next Sprint:**
+- All filters fully functional (album, date range, location)
+- Session persistence includes all filter parameters
+- Sprint 7 will add video support (space to play/pause, Live Photos as stills)
 
 ---
 

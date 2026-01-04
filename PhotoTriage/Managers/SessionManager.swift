@@ -5,6 +5,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 /// Manages session state persistence using UserDefaults
 @MainActor
@@ -27,8 +28,12 @@ final class SessionManager: ObservableObject {
         do {
             let encoded = try JSONEncoder().encode(data)
             UserDefaults.standard.set(encoded, forKey: Self.sessionKey)
-            sessionData = data
-            hasActiveSession = true
+            // Update published properties safely
+            // Use withAnimation(nil) to avoid potential SwiftUI update conflicts
+            withAnimation(nil) {
+                self.sessionData = data
+                self.hasActiveSession = true
+            }
         } catch {
             print("Failed to save session: \(error)")
         }

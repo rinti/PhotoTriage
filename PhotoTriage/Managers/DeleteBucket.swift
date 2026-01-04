@@ -73,6 +73,29 @@ class DeleteBucket: ObservableObject {
         return result
     }
 
+    /// Get all marked assets from an array
+    func getMarkedAssetsFromArray(_ assets: [PHAsset]) -> [PHAsset] {
+        assets.filter { isMarked($0) }
+    }
+
+    /// Calculate total storage size of marked assets from an array
+    func calculateTotalSizeFromArray(_ assets: [PHAsset]) -> Int64 {
+        var totalSize: Int64 = 0
+
+        for asset in assets {
+            if isMarked(asset) {
+                let resources = PHAssetResource.assetResources(for: asset)
+                for resource in resources {
+                    if let fileSize = resource.value(forKey: "fileSize") as? Int64 {
+                        totalSize += fileSize
+                    }
+                }
+            }
+        }
+
+        return totalSize
+    }
+
     /// Commit deletions via PhotoKit - moves photos to Recently Deleted
     /// Returns the number of assets deleted
     func commitDeletions() async throws -> Int {

@@ -8,7 +8,7 @@ import Photos
 
 struct BucketView: View {
     @ObservedObject var deleteBucket: DeleteBucket
-    let assets: PHFetchResult<PHAsset>
+    let assets: [PHAsset]
     let onDismiss: () -> Void
 
     @FocusState private var isFocused: Bool
@@ -18,11 +18,11 @@ struct BucketView: View {
     ]
 
     private var markedAssets: [PHAsset] {
-        deleteBucket.getMarkedAssets(from: assets)
+        deleteBucket.getMarkedAssetsFromArray(assets)
     }
 
     private var totalSizeFormatted: String {
-        let bytes = deleteBucket.calculateTotalSize(from: assets)
+        let bytes = deleteBucket.calculateTotalSizeFromArray(assets)
         return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 

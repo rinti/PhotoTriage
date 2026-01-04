@@ -7,7 +7,7 @@ import SwiftUI
 import Photos
 
 struct PhotoViewerView: View {
-    let assets: PHFetchResult<PHAsset>
+    let assets: [PHAsset]
     let sortOrder: SortOrder
     let sessionManager: SessionManager
     let onDismiss: () -> Void
@@ -17,18 +17,28 @@ struct PhotoViewerView: View {
     let initialVisitedIndices: [Int]
     let initialMarkedAssets: [String]
 
+    // Filter parameters (for session persistence)
+    let albumIdentifier: String?
+    let dateFrom: Date?
+    let dateTo: Date?
+    let location: String?
+
     @StateObject private var imageLoader = ImageLoader()
     @StateObject private var deleteBucket = DeleteBucket()
     @State private var currentIndex: Int = 0
     @State private var visitedIndices: [Int] = []  // Stack for back navigation history
 
     init(
-        assets: PHFetchResult<PHAsset>,
+        assets: [PHAsset],
         sortOrder: SortOrder,
         sessionManager: SessionManager,
         initialIndex: Int = 0,
         initialVisitedIndices: [Int] = [],
         initialMarkedAssets: [String] = [],
+        albumIdentifier: String? = nil,
+        dateFrom: Date? = nil,
+        dateTo: Date? = nil,
+        location: String? = nil,
         onDismiss: @escaping () -> Void
     ) {
         self.assets = assets
@@ -37,6 +47,10 @@ struct PhotoViewerView: View {
         self.initialIndex = initialIndex
         self.initialVisitedIndices = initialVisitedIndices
         self.initialMarkedAssets = initialMarkedAssets
+        self.albumIdentifier = albumIdentifier
+        self.dateFrom = dateFrom
+        self.dateTo = dateTo
+        self.location = location
         self.onDismiss = onDismiss
     }
     @State private var showBucketView = false
@@ -47,7 +61,7 @@ struct PhotoViewerView: View {
     /// Current asset being viewed (nil if at end or empty)
     private var currentAsset: PHAsset? {
         guard currentIndex < assets.count else { return nil }
-        return assets.object(at: currentIndex)
+        return assets[currentIndex]
     }
 
     /// Whether current photo is marked for deletion
@@ -279,7 +293,7 @@ struct PhotoViewerView: View {
 
     private func markForDeletionAndAdvance() {
         guard currentIndex < assets.count else { return }
-        let asset = assets.object(at: currentIndex)
+        let asset = assets[currentIndex]
         deleteBucket.markForDeletion(asset)
         advanceToNext()
     }
@@ -300,7 +314,7 @@ struct PhotoViewerView: View {
 
     private func loadCurrentPhoto() {
         guard currentIndex < assets.count else { return }
-        let asset = assets.object(at: currentIndex)
+        let asset = assets[currentIndex]
         imageLoader.loadImage(from: asset)
     }
 
@@ -334,29 +348,58 @@ struct PhotoViewerView: View {
     }
 
     private func discardAndQuit() {
+        // Capture values before any potential view changes
+        let count = assets.count
+        let currentIdx = currentIndex
+        let visited = visitedIndices
+
         // Clear bucket but save position
         let sessionData = SessionData(
             sortOrder: sortOrder,
-            currentIndex: currentIndex,
-            visitedIndices: visitedIndices,
+            currentIndex: currentIdx,
+            visitedIndices: visited,
             markedAssets: [],  // Discarded
-            totalAssetCount: assets.count,
-            savedAt: Date()
+            totalAssetCount: count,
+            savedAt: Date(),
+            albumIdentifier: albumIdentifier,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            location: location
         )
         sessionManager.saveSession(sessionData)
-        onDismiss()
+
+        // Small delay to let the save complete before dismissing
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            onDismiss()
+        }
     }
 
     private func saveSessionAndQuit() {
+        // Capture values before any potential view changes
+        let count = assets.count
+        let currentIdx = currentIndex
+        let visited = visitedIndices
+        let marked = Array(deleteBucket.markedAssets)
+
         let sessionData = SessionData(
             sortOrder: sortOrder,
-            currentIndex: currentIndex,
-            visitedIndices: visitedIndices,
-            markedAssets: Array(deleteBucket.markedAssets),
-            totalAssetCount: assets.count,
-            savedAt: Date()
+            currentIndex: currentIdx,
+            visitedIndices: visited,
+            markedAssets: marked,
+            totalAssetCount: count,
+            savedAt: Date(),
+            albumIdentifier: albumIdentifier,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            location: location
         )
         sessionManager.saveSession(sessionData)
-        onDismiss()
+
+        // Small delay to let the save complete before dismissing
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            onDismiss()
+        }
     }
 }

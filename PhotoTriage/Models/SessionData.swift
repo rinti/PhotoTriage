@@ -24,4 +24,18 @@ struct SessionData: Codable {
 
     /// Timestamp when session was saved
     let savedAt: Date
+
+    // MARK: - Filter Settings (Sprint 6)
+
+    /// Album localIdentifier (nil = All Photos)
+    let albumIdentifier: String?
+
+    /// Date range filter - start date
+    let dateFrom: Date?
+
+    /// Date range filter - end date
+    let dateTo: Date?
+
+    /// Location filter text (fuzzy match on city/region/country)
+    let location: String?
 }

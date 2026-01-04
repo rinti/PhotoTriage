@@ -70,19 +70,75 @@ class PhotoLibraryManager: ObservableObject {
         albums = fetchedAlbums.sorted { ($0.localizedTitle ?? "") < ($1.localizedTitle ?? "") }
     }
 
-    func fetchAssets(sortOrder: SortOrder, album: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
+    func fetchAssets(
+        sortOrder: SortOrder,
+        album: PHAssetCollection? = nil,
+        dateFrom: Date? = nil,
+        dateTo: Date? = nil
+    ) -> PHFetchResult<PHAsset> {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: sortOrder == .oldestFirst)]
 
+        // Build predicates
+        var predicates: [NSPredicate] = []
+
+        // Media type predicate (images and videos)
+        let mediaTypePredicate = NSPredicate(
+            format: "mediaType == %d OR mediaType == %d",
+            PHAssetMediaType.image.rawValue,
+            PHAssetMediaType.video.rawValue
+        )
+        predicates.append(mediaTypePredicate)
+
+        // Date range predicates
+        if let from = dateFrom {
+            predicates.append(NSPredicate(format: "creationDate >= %@", from as NSDate))
+        }
+        if let to = dateTo {
+            // Add one day to include the entire "to" date
+            let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: to) ?? to
+            predicates.append(NSPredicate(format: "creationDate < %@", endOfDay as NSDate))
+        }
+
         if let album = album {
+            // When fetching from album, we can't use mediaType predicate with fetchAssets(in:)
+            // Instead, apply date predicates only
+            if predicates.count > 1 {
+                let datePredicates = Array(predicates.dropFirst())
+                options.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: datePredicates)
+            }
             return PHAsset.fetchAssets(in: album, options: options)
         } else {
-            // Fetch both images and videos
-            options.predicate = NSPredicate(format: "mediaType == %d OR mediaType == %d",
-                                           PHAssetMediaType.image.rawValue,
-                                           PHAssetMediaType.video.rawValue)
+            // Combine all predicates
+            options.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             return PHAsset.fetchAssets(with: options)
         }
+    }
+
+    /// Get an album by its localIdentifier
+    func getAlbum(byIdentifier identifier: String) -> PHAssetCollection? {
+        let result = PHAssetCollection.fetchAssetCollections(
+            withLocalIdentifiers: [identifier],
+            options: nil
+        )
+        return result.firstObject
+    }
+
+    /// Convert PHFetchResult to array for location filtering
+    func assetsToArray(_ fetchResult: PHFetchResult<PHAsset>) -> [PHAsset] {
+        var assets: [PHAsset] = []
+        fetchResult.enumerateObjects { asset, _, _ in
+            assets.append(asset)
+        }
+        return assets
+    }
+
+    /// Filter assets by location using the location cache
+    func filterAssetsByLocation(
+        assets: [PHAsset],
+        matchingIds: Set<String>
+    ) -> [PHAsset] {
+        assets.filter { matchingIds.contains($0.localIdentifier) }
     }
 
     var isAuthorized: Bool {
