@@ -780,11 +780,47 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 8 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Updated `ImageLoader.swift` with preloading support:
+  - Added `preloadCache: [String: NSImage]` for storing preloaded images by localIdentifier
+  - Added `preloadRequests: [String: PHImageRequestID]` for tracking pending preload requests
+  - Modified `loadImage(from:)` to check preload cache first before loading
+  - Added `preloadAssets(_:)` method that preloads next N images (photos only, not videos)
+  - Added `clearPreloadCache()` method to cancel pending requests and clear cache
+  - Preloading respects PHImageManager cancellation and only caches high-quality (non-degraded) images
+- Updated `PhotoViewerView.swift` with slide animations:
+  - Added `slideDirection: Edge` state to track animation direction
+  - Added `showLoadingIndicator: Bool` state for delayed loading indicator
+  - Wrapped photo/video content in `Group` with `.id(currentIndex)` and `.transition()` modifiers
+  - Forward navigation (s/d) uses `.trailing` direction (content slides left)
+  - Backward navigation (z) uses `.leading` direction (content slides right)
+  - Animation duration: 0.25 seconds with `.easeInOut` curve
+  - Updated `advanceToNext()` and `goBack()` to use `withAnimation()`
+- Integrated preloading in `PhotoViewerView.swift`:
+  - Added `preloadNextPhotos()` helper that preloads next 3 images
+  - Called from `loadCurrentPhoto()` after each navigation
+  - Added `.onDisappear` modifier to clear preload cache when leaving view
+- Added delayed loading indicator:
+  - Loading spinner only shows after 200ms delay via `.onChange(of: imageLoader.isLoading)`
+  - Prevents flashing on fast loads from preloaded cache
+- Added auto-skip for failed loads:
+  - `.onChange(of: imageLoader.error)` detects load failures
+  - Logs error and auto-advances after 500ms delay
+  - Only skips if not at last photo
+
 **Deviations:**
+- Preloading only applies to photos, not videos (videos are heavier and have different loading path)
+- Used 250ms animation duration instead of 300ms for snappier feel
+
 **Issues:**
+- **Crash with video + slide animation**: "An AVPlayerItem cannot be associated with more than one instance of AVPlayer". During slide animations, SwiftUI creates two view instances simultaneously (old and new), and both tried to use the same AVPlayerItem.
+  - **Fix**: Changed `ImageLoader.playerItem: AVPlayerItem` to `ImageLoader.videoAsset: AVAsset`, and updated `VideoPlayerView` to accept `AVAsset` and create its own `AVPlayerItem`. This allows each view instance to have its own player item from the shared asset.
+
 **Context for Next Sprint:**
+- Sprint 9 will add SessionStats model and SummaryView for end-of-session statistics
+- Current session already tracks kept/deleted counts implicitly via bucket and position
+- Need to add explicit time tracking and photos-per-minute calculation
 
 ---
 

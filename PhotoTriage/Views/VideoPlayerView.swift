@@ -7,11 +7,13 @@ import SwiftUI
 import AVKit
 
 struct VideoPlayerView: NSViewRepresentable {
-    let playerItem: AVPlayerItem
+    let videoAsset: AVAsset  // Changed from AVPlayerItem to AVAsset
     @Binding var isPlaying: Bool
 
     func makeNSView(context: Context) -> AVPlayerView {
         let playerView = AVPlayerView()
+        // Create our own AVPlayerItem from the AVAsset - each view instance gets its own
+        let playerItem = AVPlayerItem(asset: videoAsset)
         let player = AVPlayer(playerItem: playerItem)
 
         player.isMuted = true  // Muted by default

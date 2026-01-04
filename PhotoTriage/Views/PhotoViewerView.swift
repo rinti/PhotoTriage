@@ -57,6 +57,8 @@ struct PhotoViewerView: View {
     @State private var showCommitConfirmation = false
     @State private var showQuitConfirmation = false
     @State private var isVideoPlaying = false
+    @State private var slideDirection: Edge = .trailing  // Animation direction
+    @State private var showLoadingIndicator = false  // Delayed loading indicator
     @FocusState private var isFocused: Bool
 
     /// Current asset being viewed (nil if at end or empty)
@@ -106,9 +108,6 @@ struct PhotoViewerView: View {
             Button("Commit & Quit", role: .destructive) {
                 commitAndQuit()
             }
-            Button("Discard & Quit") {
-                discardAndQuit()
-            }
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Save & Quit will remember your marked items for next time.")
@@ -121,65 +120,73 @@ struct PhotoViewerView: View {
             Color.black
                 .ignoresSafeArea()
 
-            // Photo/Video display
-            if imageLoader.mediaType == .video, let playerItem = imageLoader.playerItem {
-                // Video player
-                VideoPlayerView(playerItem: playerItem, isPlaying: $isVideoPlaying)
-                    .overlay {
-                        // Play/pause button - click to toggle
-                        ZStack {
-                            // Clickable area covers entire video
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    isVideoPlaying.toggle()
-                                }
+            // Photo/Video display with slide animation
+            Group {
+                if imageLoader.mediaType == .video, let videoAsset = imageLoader.videoAsset {
+                    // Video player
+                    VideoPlayerView(videoAsset: videoAsset, isPlaying: $isVideoPlaying)
+                        .overlay {
+                            // Play/pause button - click to toggle
+                            ZStack {
+                                // Clickable area covers entire video
+                                Color.clear
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        isVideoPlaying.toggle()
+                                    }
 
-                            // Play button indicator when paused
-                            if !isVideoPlaying {
-                                ZStack {
-                                    Circle()
-                                        .fill(.black.opacity(0.5))
-                                        .frame(width: 80, height: 80)
-                                    Image(systemName: "play.fill")
-                                        .font(.system(size: 32))
-                                        .foregroundStyle(.white)
+                                // Play button indicator when paused
+                                if !isVideoPlaying {
+                                    ZStack {
+                                        Circle()
+                                            .fill(.black.opacity(0.5))
+                                            .frame(width: 80, height: 80)
+                                        Image(systemName: "play.fill")
+                                            .font(.system(size: 32))
+                                            .foregroundStyle(.white)
+                                    }
                                 }
                             }
                         }
-                    }
-                    .overlay {
-                        // Red border for marked videos
-                        if isCurrentMarked {
-                            RoundedRectangle(cornerRadius: 0)
-                                .stroke(.red, lineWidth: 8)
+                        .overlay {
+                            // Red border for marked videos
+                            if isCurrentMarked {
+                                RoundedRectangle(cornerRadius: 0)
+                                    .stroke(.red, lineWidth: 8)
+                            }
                         }
-                    }
-            } else if let image = imageLoader.image {
-                // Image (photo or video first frame while loading)
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .overlay {
-                        // Red border for marked photos
-                        if isCurrentMarked {
-                            RoundedRectangle(cornerRadius: 0)
-                                .stroke(.red, lineWidth: 8)
+                } else if let image = imageLoader.image {
+                    // Image (photo or video first frame while loading)
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .overlay {
+                            // Red border for marked photos
+                            if isCurrentMarked {
+                                RoundedRectangle(cornerRadius: 0)
+                                    .stroke(.red, lineWidth: 8)
+                            }
                         }
+                } else if imageLoader.isLoading && showLoadingIndicator {
+                    // Delayed loading indicator (only shows after 200ms)
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                } else if let error = imageLoader.error {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundStyle(.yellow)
+                        Text(error)
+                            .foregroundStyle(.secondary)
                     }
-            } else if imageLoader.isLoading {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
-            } else if let error = imageLoader.error {
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.largeTitle)
-                        .foregroundStyle(.yellow)
-                    Text(error)
-                        .foregroundStyle(.secondary)
                 }
             }
+            .id(currentIndex)
+            .transition(.asymmetric(
+                insertion: .move(edge: slideDirection),
+                removal: .move(edge: slideDirection == .trailing ? .leading : .trailing)
+            ))
 
             // Overlays (progress counter, bucket counter)
             VStack {
@@ -263,6 +270,34 @@ struct PhotoViewerView: View {
             loadCurrentPhoto()
             isFocused = true
         }
+        .onChange(of: imageLoader.isLoading) { _, isLoading in
+            // Delayed loading indicator - only show after 200ms to avoid flashing
+            if isLoading {
+                Task {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    if imageLoader.isLoading {
+                        showLoadingIndicator = true
+                    }
+                }
+            } else {
+                showLoadingIndicator = false
+            }
+        }
+        .onChange(of: imageLoader.error) { _, error in
+            // Auto-skip failed loads
+            if error != nil {
+                print("Failed to load asset at index \(currentIndex): \(error ?? "unknown")")
+                Task {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    if currentIndex < assets.count - 1 {
+                        advanceToNext()
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            imageLoader.clearPreloadCache()
+        }
     }
 
     private func handleKeyPress(_ keyPress: KeyPress) -> KeyPress.Result {
@@ -326,9 +361,13 @@ struct PhotoViewerView: View {
             currentIndex = assets.count // Trigger "end" state
             return
         }
+        // Set slide direction (new content comes from right)
+        slideDirection = .trailing
         // Push current index to history before advancing
-        visitedIndices.append(currentIndex)
-        currentIndex += 1
+        withAnimation(.easeInOut(duration: 0.25)) {
+            visitedIndices.append(currentIndex)
+            currentIndex += 1
+        }
         loadCurrentPhoto()
     }
 
@@ -344,7 +383,11 @@ struct PhotoViewerView: View {
             // No history, can't go back
             return
         }
-        currentIndex = previousIndex
+        // Set slide direction (new content comes from left)
+        slideDirection = .leading
+        withAnimation(.easeInOut(duration: 0.25)) {
+            currentIndex = previousIndex
+        }
         loadCurrentPhoto()
 
         // Auto-restore if the photo was marked for deletion
@@ -360,6 +403,15 @@ struct PhotoViewerView: View {
         guard currentIndex < assets.count else { return }
         let asset = assets[currentIndex]
         imageLoader.loadImage(from: asset)
+        preloadNextPhotos()
+    }
+
+    private func preloadNextPhotos() {
+        let startIndex = currentIndex + 1
+        let endIndex = min(currentIndex + 4, assets.count)  // Next 3
+        guard startIndex < endIndex else { return }
+        let assetsToPreload = Array(assets[startIndex..<endIndex])
+        imageLoader.preloadAssets(assetsToPreload)
     }
 
     private func commitDeletions() {
