@@ -8,17 +8,35 @@ import Photos
 
 struct MainMenuView: View {
     @StateObject private var photoManager = PhotoLibraryManager()
+    @StateObject private var sessionManager = SessionManager()
     @State private var selectedSortOrder: SortOrder = .newestFirst
     @State private var isShowingViewer = false
     @State private var assets: PHFetchResult<PHAsset>?
 
+    // Session restoration state
+    @State private var resumeIndex: Int = 0
+    @State private var resumeVisitedIndices: [Int] = []
+    @State private var resumeMarkedAssets: [String] = []
+    @State private var resumeSortOrder: SortOrder = .newestFirst
+
     var body: some View {
         ZStack {
             if isShowingViewer, let assets = assets {
-                PhotoViewerView(assets: assets) {
+                PhotoViewerView(
+                    assets: assets,
+                    sortOrder: resumeSortOrder,
+                    sessionManager: sessionManager,
+                    initialIndex: resumeIndex,
+                    initialVisitedIndices: resumeVisitedIndices,
+                    initialMarkedAssets: resumeMarkedAssets
+                ) {
                     // On dismiss, return to main menu
                     isShowingViewer = false
                     self.assets = nil
+                    // Reset resume state
+                    resumeIndex = 0
+                    resumeVisitedIndices = []
+                    resumeMarkedAssets = []
                 }
             } else {
                 mainMenuContent
@@ -95,6 +113,31 @@ struct MainMenuView: View {
             Text("\(photoManager.photoCount) photos and videos in library")
                 .font(.headline)
 
+            // Continue button (only visible if session exists)
+            if sessionManager.hasActiveSession, let session = sessionManager.sessionData {
+                VStack(spacing: 8) {
+                    Button {
+                        continueSession(session)
+                    } label: {
+                        HStack {
+                            Image(systemName: "play.fill")
+                            Text("Continue (\(session.currentIndex + 1)/\(session.totalAssetCount))")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    if !session.markedAssets.isEmpty {
+                        Text("\(session.markedAssets.count) items in delete bucket")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Divider()
+                    .frame(maxWidth: 300)
+            }
+
             // Sort Order Picker
             Picker("Sort Order", selection: $selectedSortOrder) {
                 ForEach(SortOrder.allCases, id: \.self) { order in
@@ -104,18 +147,42 @@ struct MainMenuView: View {
             .pickerStyle(.segmented)
             .frame(maxWidth: 300)
 
-            Button("Start Session") {
-                startSession()
+            Button("Start New Session") {
+                startNewSession()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .controlSize(.large)
             .disabled(photoManager.photoCount == 0)
         }
     }
 
-    private func startSession() {
+    private func startNewSession() {
+        // Clear any existing saved session
+        sessionManager.clearSession()
+
         let fetchedAssets = photoManager.fetchAssets(sortOrder: selectedSortOrder)
         guard fetchedAssets.count > 0 else { return }
+
+        // Reset resume state for fresh start
+        resumeIndex = 0
+        resumeVisitedIndices = []
+        resumeMarkedAssets = []
+        resumeSortOrder = selectedSortOrder
+
+        assets = fetchedAssets
+        isShowingViewer = true
+    }
+
+    private func continueSession(_ session: SessionData) {
+        // Fetch assets with saved sort order
+        let fetchedAssets = photoManager.fetchAssets(sortOrder: session.sortOrder)
+        guard fetchedAssets.count > 0 else { return }
+
+        // Set resume state from saved session
+        resumeIndex = session.currentIndex
+        resumeVisitedIndices = session.visitedIndices
+        resumeMarkedAssets = session.markedAssets
+        resumeSortOrder = session.sortOrder
 
         assets = fetchedAssets
         isShowingViewer = true

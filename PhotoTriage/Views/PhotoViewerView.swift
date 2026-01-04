@@ -8,12 +8,37 @@ import Photos
 
 struct PhotoViewerView: View {
     let assets: PHFetchResult<PHAsset>
+    let sortOrder: SortOrder
+    let sessionManager: SessionManager
     let onDismiss: () -> Void
+
+    // Initial state for session restoration
+    let initialIndex: Int
+    let initialVisitedIndices: [Int]
+    let initialMarkedAssets: [String]
 
     @StateObject private var imageLoader = ImageLoader()
     @StateObject private var deleteBucket = DeleteBucket()
     @State private var currentIndex: Int = 0
     @State private var visitedIndices: [Int] = []  // Stack for back navigation history
+
+    init(
+        assets: PHFetchResult<PHAsset>,
+        sortOrder: SortOrder,
+        sessionManager: SessionManager,
+        initialIndex: Int = 0,
+        initialVisitedIndices: [Int] = [],
+        initialMarkedAssets: [String] = [],
+        onDismiss: @escaping () -> Void
+    ) {
+        self.assets = assets
+        self.sortOrder = sortOrder
+        self.sessionManager = sessionManager
+        self.initialIndex = initialIndex
+        self.initialVisitedIndices = initialVisitedIndices
+        self.initialMarkedAssets = initialMarkedAssets
+        self.onDismiss = onDismiss
+    }
     @State private var showBucketView = false
     @State private var showCommitConfirmation = false
     @State private var showQuitConfirmation = false
@@ -60,6 +85,9 @@ struct PhotoViewerView: View {
             isPresented: $showQuitConfirmation,
             titleVisibility: .visible
         ) {
+            Button("Save & Quit") {
+                saveSessionAndQuit()
+            }
             Button("Commit & Quit", role: .destructive) {
                 commitAndQuit()
             }
@@ -68,7 +96,7 @@ struct PhotoViewerView: View {
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("What would you like to do with the marked items?")
+            Text("Save & Quit will remember your marked items for next time.")
         }
     }
 
@@ -179,6 +207,10 @@ struct PhotoViewerView: View {
             handleKeyPress(keyPress)
         }
         .task {
+            // Restore session state if resuming
+            currentIndex = initialIndex
+            visitedIndices = initialVisitedIndices
+            deleteBucket.restoreFromSession(initialMarkedAssets)
             loadCurrentPhoto()
             isFocused = true
         }
@@ -222,7 +254,7 @@ struct PhotoViewerView: View {
             // Quit session (prompt if bucket has items)
             Task { @MainActor in
                 if deleteBucket.isEmpty {
-                    onDismiss()
+                    saveSessionAndQuit()
                 } else {
                     showQuitConfirmation = true
                 }
@@ -276,6 +308,10 @@ struct PhotoViewerView: View {
         Task {
             do {
                 _ = try await deleteBucket.commitDeletions()
+                // Clear session after commit - position is unreliable after photos deleted
+                await MainActor.run {
+                    sessionManager.clearSession()
+                }
             } catch {
                 print("Failed to delete photos: \(error)")
             }
@@ -287,6 +323,8 @@ struct PhotoViewerView: View {
             do {
                 _ = try await deleteBucket.commitDeletions()
                 await MainActor.run {
+                    // Clear session - photos deleted, position unreliable
+                    sessionManager.clearSession()
                     onDismiss()
                 }
             } catch {
@@ -296,7 +334,29 @@ struct PhotoViewerView: View {
     }
 
     private func discardAndQuit() {
-        deleteBucket.clear()
+        // Clear bucket but save position
+        let sessionData = SessionData(
+            sortOrder: sortOrder,
+            currentIndex: currentIndex,
+            visitedIndices: visitedIndices,
+            markedAssets: [],  // Discarded
+            totalAssetCount: assets.count,
+            savedAt: Date()
+        )
+        sessionManager.saveSession(sessionData)
+        onDismiss()
+    }
+
+    private func saveSessionAndQuit() {
+        let sessionData = SessionData(
+            sortOrder: sortOrder,
+            currentIndex: currentIndex,
+            visitedIndices: visitedIndices,
+            markedAssets: Array(deleteBucket.markedAssets),
+            totalAssetCount: assets.count,
+            savedAt: Date()
+        )
+        sessionManager.saveSession(sessionData)
         onDismiss()
     }
 }

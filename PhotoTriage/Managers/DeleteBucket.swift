@@ -38,6 +38,11 @@ class DeleteBucket: ObservableObject {
         markedAssets.removeAll()
     }
 
+    /// Restore bucket state from saved identifiers
+    func restoreFromSession(_ identifiers: [String]) {
+        markedAssets = Set(identifiers)
+    }
+
     /// Calculate total storage size of marked assets in bytes
     func calculateTotalSize(from assets: PHFetchResult<PHAsset>) -> Int64 {
         var totalSize: Int64 = 0

@@ -648,11 +648,44 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 5 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Created `SessionData.swift` model with Codable support:
+  - Stores sortOrder, currentIndex, visitedIndices, markedAssets, totalAssetCount, savedAt
+  - Added `Codable` conformance to `SortOrder` enum
+- Created `SessionManager.swift` with:
+  - UserDefaults persistence using JSON encoding
+  - `saveSession()`, `loadSession()`, `clearSession()` methods
+  - `hasActiveSession` and `sessionData` published properties
+  - `validateSession()` method for checking if library changed
+- Updated `DeleteBucket.swift`:
+  - Added `restoreFromSession()` method to restore bucket from saved identifiers
+- Updated `PhotoViewerView.swift`:
+  - Added `sortOrder`, `sessionManager`, `initialIndex`, `initialVisitedIndices`, `initialMarkedAssets` parameters
+  - Restores state (including bucket) from initial values in `.task`
+  - Quit dialog now has 3 options: "Save & Quit", "Commit & Quit", "Discard & Quit"
+  - "Save & Quit" preserves bucket contents for next session
+  - "Discard & Quit" clears bucket but saves position
+  - Clears session after commit (photos deleted, position unreliable)
+- Updated `MainMenuView.swift`:
+  - Added SessionManager StateObject
+  - Added Continue button with progress display (e.g., "Continue (42/150)")
+  - Shows bucket count below Continue button if items exist
+  - `continueSession()` restores saved state including bucket contents
+  - `startNewSession()` clears any existing session first
+
 **Deviations:**
+- Bucket state IS now persisted (changed from original plan based on user feedback)
+- Validation behavior deferred to Sprint 6 (library change warning not yet implemented)
+
 **Issues:**
+- None. Build succeeded.
+
 **Context for Next Sprint:**
+- Session persistence is fully functional including bucket contents
+- Sprint 6 will add filters (album, date, location) which should also be saved with session
+- Session validation (warning when library changed) could be enhanced in future sprint
+- MainMenuView now has sessionManager available for use with filters
 
 ---
 
