@@ -42,6 +42,7 @@ struct MainMenuView: View {
                     assets: assets,
                     sortOrder: resumeSortOrder,
                     sessionManager: sessionManager,
+                    locationCache: locationCache,
                     initialIndex: resumeIndex,
                     initialVisitedIndices: resumeVisitedIndices,
                     initialMarkedAssets: resumeMarkedAssets,

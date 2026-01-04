@@ -864,8 +864,46 @@ After completing each sprint, update this section with:
 ---
 
 ### Sprint 10 Log
-**Status:** Not started
+**Status:** Complete
 **Completed:**
+- Created `SettingsView.swift` with:
+  - `@AppStorage("showMetadataOverlay")` for persistent preference
+  - Form with Toggle for metadata overlay setting
+  - Description text explaining what metadata is shown
+  - Fixed frame size (400x150) for compact settings window
+- Created `MetadataOverlay.swift` with:
+  - Date (formatted as "Jan 4, 2026 at 3:45 PM")
+  - Location (using LocationCache for reverse geocoding)
+  - Dimensions (pixelWidth x pixelHeight)
+  - File size (using PHAssetResource and ByteCountFormatter)
+  - MetadataRow helper component for consistent styling
+  - Semi-transparent black background matching existing overlay style
+  - Bottom-left corner positioning
+- Created `HelpOverlay.swift` with:
+  - Full-screen dimmed background (click to dismiss)
+  - All keyboard shortcuts listed (s, d, z, b, c, q, ?, Space)
+  - ShortcutRow helper with monospace key styling
+  - Dismisses on `?` key or Escape
+  - Material background with shadow for readability
+- Updated `PhotoTriageApp.swift`:
+  - Added `Settings` scene for automatic Cmd+, menu item
+- Updated `PhotoViewerView.swift`:
+  - Added `@AppStorage("showMetadataOverlay")` binding
+  - Added `@State private var showHelp` state
+  - Added `locationCache: LocationCache` parameter
+  - Added `?` key handler to toggle help overlay
+  - Integrated MetadataOverlay in bottom-left (stacked with deletion indicator)
+  - Integrated HelpOverlay as modal overlay
+- Updated `MainMenuView.swift`:
+  - Pass `locationCache` to PhotoViewerView
+
 **Deviations:**
+- LocationCache is passed from MainMenuView to PhotoViewerView rather than creating a new instance (shares geocoding cache)
+- Window state persistence uses SwiftUI's built-in automatic window restoration (no manual implementation needed)
+
 **Issues:**
+- None. Build succeeded on first attempt.
+
 **Context for Next Sprint:**
+- App is complete with all 10 sprints implemented
+- All features from spec are working: photo viewer, s/d/z workflow, bucket view, commit, session persistence, filters, video support, animations, preloading, summary stats, settings, metadata overlay, help overlay

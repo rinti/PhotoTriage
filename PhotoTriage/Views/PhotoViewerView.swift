@@ -10,6 +10,7 @@ struct PhotoViewerView: View {
     let assets: [PHAsset]
     let sortOrder: SortOrder
     let sessionManager: SessionManager
+    let locationCache: LocationCache
     let onDismiss: () -> Void
 
     // Initial state for session restoration
@@ -23,15 +24,18 @@ struct PhotoViewerView: View {
     let dateTo: Date?
     let location: String?
 
+    @AppStorage("showMetadataOverlay") private var showMetadataOverlay: Bool = false
     @StateObject private var imageLoader = ImageLoader()
     @StateObject private var deleteBucket = DeleteBucket()
     @State private var currentIndex: Int = 0
     @State private var visitedIndices: [Int] = []  // Stack for back navigation history
+    @State private var showHelp = false
 
     init(
         assets: [PHAsset],
         sortOrder: SortOrder,
         sessionManager: SessionManager,
+        locationCache: LocationCache,
         initialIndex: Int = 0,
         initialVisitedIndices: [Int] = [],
         initialMarkedAssets: [String] = [],
@@ -44,6 +48,7 @@ struct PhotoViewerView: View {
         self.assets = assets
         self.sortOrder = sortOrder
         self.sessionManager = sessionManager
+        self.locationCache = locationCache
         self.initialIndex = initialIndex
         self.initialVisitedIndices = initialVisitedIndices
         self.initialMarkedAssets = initialMarkedAssets
@@ -234,25 +239,38 @@ struct PhotoViewerView: View {
                 Spacer()
             }
 
-            // Red overlay indicator for marked photos
-            if isCurrentMarked {
-                VStack {
-                    Spacer()
-                    HStack {
-                        HStack(spacing: 6) {
-                            Image(systemName: "trash.fill")
-                            Text("Marked for deletion")
+            // Bottom-left overlays (metadata and/or deletion indicator)
+            VStack {
+                Spacer()
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Metadata overlay (if enabled)
+                        if showMetadataOverlay, let asset = currentAsset {
+                            MetadataOverlay(asset: asset, locationCache: locationCache)
                         }
-                        .font(.subheadline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(.red.opacity(0.9))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .foregroundStyle(.white)
-                        .padding()
-                        Spacer()
+
+                        // Marked for deletion indicator
+                        if isCurrentMarked {
+                            HStack(spacing: 6) {
+                                Image(systemName: "trash.fill")
+                                Text("Marked for deletion")
+                            }
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.red.opacity(0.9))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .foregroundStyle(.white)
+                        }
                     }
+                    .padding()
+                    Spacer()
                 }
+            }
+
+            // Help overlay
+            if showHelp {
+                HelpOverlay(isPresented: $showHelp)
             }
 
             // End of photos - show summary
@@ -367,6 +385,12 @@ struct PhotoViewerView: View {
             // Space: Play/pause video
             if imageLoader.mediaType == .video {
                 isVideoPlaying.toggle()
+            }
+            return .handled
+        case "?":
+            // Toggle help overlay
+            Task { @MainActor in
+                showHelp.toggle()
             }
             return .handled
         default:

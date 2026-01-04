@@ -12,5 +12,9 @@ struct PhotoTriageApp: App {
             MainMenuView()
         }
         .defaultSize(width: 500, height: 400)
+
+        Settings {
+            SettingsView()
+        }
     }
 }
