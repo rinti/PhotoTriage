@@ -1,0 +1,568 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		DF2C23412F0ADFE80015B2F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF2C23292F0ADFE50015B2F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF2C23302F0ADFE50015B2F8;
+			remoteInfo = PhotoTriage;
+		};
+		DF2C234B2F0ADFE80015B2F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF2C23292F0ADFE50015B2F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF2C23302F0ADFE50015B2F8;
+			remoteInfo = PhotoTriage;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DF2C23312F0ADFE50015B2F8 /* PhotoTriage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoTriage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF2C23402F0ADFE80015B2F8 /* PhotoTriageTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoTriageTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF2C234A2F0ADFE80015B2F8 /* PhotoTriageUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoTriageUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DF2C23332F0ADFE50015B2F8 /* PhotoTriage */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PhotoTriage;
+			sourceTree = "<group>";
+		};
+		DF2C23432F0ADFE80015B2F8 /* PhotoTriageTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PhotoTriageTests;
+			sourceTree = "<group>";
+		};
+		DF2C234D2F0ADFE80015B2F8 /* PhotoTriageUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PhotoTriageUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DF2C232E2F0ADFE50015B2F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C233D2F0ADFE80015B2F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C23472F0ADFE80015B2F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DF2C23282F0ADFE50015B2F8 = {
+			isa = PBXGroup;
+			children = (
+				DF2C23332F0ADFE50015B2F8 /* PhotoTriage */,
+				DF2C23432F0ADFE80015B2F8 /* PhotoTriageTests */,
+				DF2C234D2F0ADFE80015B2F8 /* PhotoTriageUITests */,
+				DF2C23322F0ADFE50015B2F8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DF2C23322F0ADFE50015B2F8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DF2C23312F0ADFE50015B2F8 /* PhotoTriage.app */,
+				DF2C23402F0ADFE80015B2F8 /* PhotoTriageTests.xctest */,
+				DF2C234A2F0ADFE80015B2F8 /* PhotoTriageUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DF2C23302F0ADFE50015B2F8 /* PhotoTriage */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF2C23542F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriage" */;
+			buildPhases = (
+				DF2C232D2F0ADFE50015B2F8 /* Sources */,
+				DF2C232E2F0ADFE50015B2F8 /* Frameworks */,
+				DF2C232F2F0ADFE50015B2F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DF2C23332F0ADFE50015B2F8 /* PhotoTriage */,
+			);
+			name = PhotoTriage;
+			packageProductDependencies = (
+			);
+			productName = PhotoTriage;
+			productReference = DF2C23312F0ADFE50015B2F8 /* PhotoTriage.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DF2C233F2F0ADFE80015B2F8 /* PhotoTriageTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF2C23572F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriageTests" */;
+			buildPhases = (
+				DF2C233C2F0ADFE80015B2F8 /* Sources */,
+				DF2C233D2F0ADFE80015B2F8 /* Frameworks */,
+				DF2C233E2F0ADFE80015B2F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF2C23422F0ADFE80015B2F8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DF2C23432F0ADFE80015B2F8 /* PhotoTriageTests */,
+			);
+			name = PhotoTriageTests;
+			packageProductDependencies = (
+			);
+			productName = PhotoTriageTests;
+			productReference = DF2C23402F0ADFE80015B2F8 /* PhotoTriageTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DF2C23492F0ADFE80015B2F8 /* PhotoTriageUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF2C235A2F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriageUITests" */;
+			buildPhases = (
+				DF2C23462F0ADFE80015B2F8 /* Sources */,
+				DF2C23472F0ADFE80015B2F8 /* Frameworks */,
+				DF2C23482F0ADFE80015B2F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF2C234C2F0ADFE80015B2F8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DF2C234D2F0ADFE80015B2F8 /* PhotoTriageUITests */,
+			);
+			name = PhotoTriageUITests;
+			packageProductDependencies = (
+			);
+			productName = PhotoTriageUITests;
+			productReference = DF2C234A2F0ADFE80015B2F8 /* PhotoTriageUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DF2C23292F0ADFE50015B2F8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					DF2C23302F0ADFE50015B2F8 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					DF2C233F2F0ADFE80015B2F8 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = DF2C23302F0ADFE50015B2F8;
+					};
+					DF2C23492F0ADFE80015B2F8 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = DF2C23302F0ADFE50015B2F8;
+					};
+				};
+			};
+			buildConfigurationList = DF2C232C2F0ADFE50015B2F8 /* Build configuration list for PBXProject "PhotoTriage" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DF2C23282F0ADFE50015B2F8;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DF2C23322F0ADFE50015B2F8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DF2C23302F0ADFE50015B2F8 /* PhotoTriage */,
+				DF2C233F2F0ADFE80015B2F8 /* PhotoTriageTests */,
+				DF2C23492F0ADFE80015B2F8 /* PhotoTriageUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DF2C232F2F0ADFE50015B2F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C233E2F0ADFE80015B2F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C23482F0ADFE80015B2F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DF2C232D2F0ADFE50015B2F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C233C2F0ADFE80015B2F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF2C23462F0ADFE80015B2F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DF2C23422F0ADFE80015B2F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF2C23302F0ADFE50015B2F8 /* PhotoTriage */;
+			targetProxy = DF2C23412F0ADFE80015B2F8 /* PBXContainerItemProxy */;
+		};
+		DF2C234C2F0ADFE80015B2F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF2C23302F0ADFE50015B2F8 /* PhotoTriage */;
+			targetProxy = DF2C234B2F0ADFE80015B2F8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DF2C23522F0ADFE80015B2F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DF2C23532F0ADFE80015B2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		DF2C23552F0ADFE80015B2F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriage;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		DF2C23562F0ADFE80015B2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriage;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		DF2C23582F0ADFE80015B2F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriageTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhotoTriage.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PhotoTriage";
+			};
+			name = Debug;
+		};
+		DF2C23592F0ADFE80015B2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriageTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhotoTriage.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PhotoTriage";
+			};
+			name = Release;
+		};
+		DF2C235B2F0ADFE80015B2F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriageUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = PhotoTriage;
+			};
+			name = Debug;
+		};
+		DF2C235C2F0ADFE80015B2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rinti.PhotoTriageUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = PhotoTriage;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DF2C232C2F0ADFE50015B2F8 /* Build configuration list for PBXProject "PhotoTriage" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF2C23522F0ADFE80015B2F8 /* Debug */,
+				DF2C23532F0ADFE80015B2F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF2C23542F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriage" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF2C23552F0ADFE80015B2F8 /* Debug */,
+				DF2C23562F0ADFE80015B2F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF2C23572F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriageTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF2C23582F0ADFE80015B2F8 /* Debug */,
+				DF2C23592F0ADFE80015B2F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF2C235A2F0ADFE80015B2F8 /* Build configuration list for PBXNativeTarget "PhotoTriageUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF2C235B2F0ADFE80015B2F8 /* Debug */,
+				DF2C235C2F0ADFE80015B2F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DF2C23292F0ADFE50015B2F8 /* Project object */;
+}
