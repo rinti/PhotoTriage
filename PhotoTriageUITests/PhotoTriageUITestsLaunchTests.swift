@@ -15,6 +15,7 @@ final class PhotoTriageUITestsLaunchTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        throw XCTSkip("Disabled by default to avoid interacting with a real Photos library during automated runs.")
     }
 
     @MainActor

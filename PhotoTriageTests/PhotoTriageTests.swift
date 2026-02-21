@@ -1,36 +1,90 @@
-//
-//  PhotoTriageTests.swift
-//  PhotoTriageTests
-//
-//  Created by Andreas Bernacca on 2026-01-04.
-//
-
 import XCTest
 @testable import PhotoTriage
 
-final class PhotoTriageTests: XCTestCase {
+final class SessionManagerTests: XCTestCase {
+    private let sessionKey = "com.phototriage.savedSession"
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    override func setUp() {
+        super.setUp()
+        UserDefaults.standard.removeObject(forKey: sessionKey)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    override func tearDown() {
+        UserDefaults.standard.removeObject(forKey: sessionKey)
+        super.tearDown()
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testInitWithoutSavedSessionStartsInactive() async {
+        await MainActor.run {
+            let manager = SessionManager()
+            XCTAssertFalse(manager.hasActiveSession)
+            XCTAssertNil(manager.sessionData)
         }
     }
 
+    func testSaveAndLoadSessionPersistsAllFields() async {
+        let expected = makeSessionData()
+        await MainActor.run {
+            let manager = SessionManager()
+            manager.saveSession(expected)
+
+            XCTAssertTrue(manager.hasActiveSession)
+            XCTAssertNotNil(manager.sessionData)
+
+            let loaded = manager.loadSession()
+            XCTAssertNotNil(loaded)
+            assertSession(loaded, matches: expected)
+        }
+    }
+
+    func testInitWithCorruptedSavedDataClearsSession() async {
+        UserDefaults.standard.set(Data("invalid-json".utf8), forKey: sessionKey)
+
+        await MainActor.run {
+            let manager = SessionManager()
+            XCTAssertFalse(manager.hasActiveSession)
+            XCTAssertNil(manager.sessionData)
+            XCTAssertNil(UserDefaults.standard.data(forKey: sessionKey))
+            XCTAssertNil(manager.loadSession())
+        }
+    }
+
+    func testValidateSessionMatchesAssetCount() async {
+        let session = makeSessionData(totalAssetCount: 42)
+        await MainActor.run {
+            let manager = SessionManager()
+            manager.saveSession(session)
+
+            XCTAssertTrue(manager.validateSession(currentAssetCount: 42))
+            XCTAssertFalse(manager.validateSession(currentAssetCount: 41))
+        }
+    }
+
+    private func makeSessionData(totalAssetCount: Int = 20) -> SessionData {
+        SessionData(
+            sortOrder: .newestFirst,
+            currentIndex: 3,
+            visitedIndices: [0, 1, 2],
+            markedAssets: ["asset-1", "asset-2"],
+            totalAssetCount: totalAssetCount,
+            savedAt: Date(timeIntervalSince1970: 1_735_000_000),
+            albumIdentifier: "album-123",
+            dateFrom: Date(timeIntervalSince1970: 1_700_000_000),
+            dateTo: Date(timeIntervalSince1970: 1_710_000_000),
+            location: "San Francisco"
+        )
+    }
+
+    private func assertSession(_ actual: SessionData?, matches expected: SessionData) {
+        XCTAssertEqual(actual?.sortOrder, expected.sortOrder)
+        XCTAssertEqual(actual?.currentIndex, expected.currentIndex)
+        XCTAssertEqual(actual?.visitedIndices, expected.visitedIndices)
+        XCTAssertEqual(actual?.markedAssets, expected.markedAssets)
+        XCTAssertEqual(actual?.totalAssetCount, expected.totalAssetCount)
+        XCTAssertEqual(actual?.savedAt, expected.savedAt)
+        XCTAssertEqual(actual?.albumIdentifier, expected.albumIdentifier)
+        XCTAssertEqual(actual?.dateFrom, expected.dateFrom)
+        XCTAssertEqual(actual?.dateTo, expected.dateTo)
+        XCTAssertEqual(actual?.location, expected.location)
+    }
 }
